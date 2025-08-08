@@ -149,6 +149,4 @@ If you encounter any issues or have suggestions:
 3. Verify Local Storage is available (not in private/incognito mode)
 4. Try refreshing the page
 
-## 🎯 Roadmap
-
 **Enjoy organizing your thoughts with My Simple Notes!** 📝✨
