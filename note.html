@@ -1,0 +1,756 @@
+<!-- FILENAME: note.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Notes Simples</title>
+    <!-- Magnifique police de caractère: Lora from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* FILENAME: note.html (CSS section) */
+        body {
+            font-family: 'Lora', serif; /* Application de la police choisie */
+            background-color: #F8F8F8; /* Fond blanc cassé homogène sur toute la page */
+            margin: 0;
+            padding: 20px; /* Ajuste le padding pour laisser de l'espace aux éléments fixes */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #36454F; /* Gris antracite foncé pour le texte principal */
+            position: relative; /* Nécessaire pour positionner les icônes en absolu */
+        }
+
+        .top-left-controls {
+            position: absolute; /* Positionne les icônes par rapport au body */
+            top: 20px; /* Distance du haut */
+            left: 20px; /* Distance de la gauche */
+            display: flex;
+            gap: 10px; /* Espacement entre les icônes */
+            z-index: 1000; /* Assure que les icônes sont au-dessus des autres éléments */
+        }
+
+        .icon-btn {
+            font-size: 1.5em; /* Taille de l'icône */
+            color: #36454F; /* Couleur de l'icône */
+            cursor: pointer;
+            padding: 8px; /* Ajoute un peu de rembourrage autour de l'icône */
+            border-radius: 5px; /* Bords légèrement arrondis */
+            transition: background-color 0.3s ease, color 0.3s ease; /* Transition douce */
+        }
+
+        .icon-btn:hover {
+            background-color: #E6E6E6; /* Fond légèrement plus foncé au survol */
+            color: #556B8D; /* Changement de couleur de l'icône au survol */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px; /* Largeur maximale pour une meilleure lisibilité */
+            margin-top: 50px; /* Ajoute une marge pour éviter le chevauchement avec les icônes */
+        }
+
+        #note-input {
+            width: calc(100% - 20px); /* Ajuste la largeur avec le padding */
+            padding: 15px 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-bottom: 2px solid #ccc;
+            font-size: 1.2em;
+            font-family: 'Lora', serif;
+            background-color: transparent;
+            color: #36454F;
+            resize: vertical; /* Permet de redimensionner verticalement */
+            min-height: 50px;
+            box-sizing: border-box; /* Inclut padding et border dans la largeur/hauteur */
+        }
+
+        #note-input:focus {
+            outline: none;
+            border-bottom-color: #36454F; /* Changement de couleur au focus */
+        }
+
+        #note-input::placeholder {
+            color: #1e97c7; /* Couleur du placeholder */
+        }
+
+        .note-item {
+            padding: 5px 0 5px 20px; /* Ajout d'un padding gauche pour la puce, et padding vertical */
+            margin-bottom: 5px; /* Dividé par deux l'espace vertical entre les notes */
+            font-size: 1.2em;
+            line-height: 1.5;
+            cursor: pointer; /* Indique que l'élément est interactif */
+            word-wrap: break-word; /* Permet la coupure des mots longs */
+            white-space: pre-wrap; /* Préserve les espaces blancs et les retours à la ligne */
+            color: #36454F; /* Gris antracite foncé pour les notes */
+            transition: background-color 0.2s ease; /* Transition douce au survol */
+            position: relative; /* Nécessaire pour positionner la pseudo-classe ::before */
+            /* D&D */
+            user-select: none; /* Prevents text selection during drag */
+        }
+
+        .note-item::before {
+            content: '\2022'; /* Caractère de puce (bullet point) */
+            position: absolute;
+            left: 5px; /* Positionne la puce par rapport au bord gauche */
+            top: 5px; /* Aligne la puce verticalement avec la première ligne de texte */
+            color: #36454F; /* Couleur de la puce */
+            font-weight: bold; /* Rend la puce plus visible */
+            line-height: 1.5; /* Assure l'alignement vertical avec le texte */
+        }
+
+        .note-item:hover {
+            background-color: #F0F0F0; /* Légèrement plus foncé au survol */
+        }
+
+        /* Styles pour les couleurs des notes */
+        .note-red {
+            color: #D32F2F; /* Rouge foncé */
+        }
+
+        .note-orange {
+            color: #F57C00; /* Orange foncé */
+        }
+
+        .note-green {
+            color: #388E3C; /* Vert foncé */
+        }
+
+        .note-item.editing textarea {
+            width: 100%;
+            font-family: 'Lora', serif;
+            font-size: 1.2em;
+            line-height: 1.5;
+            color: #36454F;
+            padding: 0;
+            margin: 0;
+            border: none;
+            background-color: #E6E6E6; /* Fond légèrement plus foncé lors de l'édition */
+            resize: vertical;
+            min-height: 50px;
+            box-sizing: border-box;
+            outline: none; /* Supprime le contour au focus */
+        }
+
+        .note-item.editing {
+            padding: 0; /* Supprime le padding du div lorsque le textarea est actif pour le laisser prendre toute la place */
+            margin: 0;
+        }
+
+        /* Masque la puce lorsque la note est en mode édition */
+        .note-item.editing::before {
+            display: none;
+        }
+
+        /* Styles pour le drag and drop */
+        .note-item.dragging {
+            opacity: 0.4; /* Rend la note semi-transparente pendant le glisser-déposer */
+        }
+
+        .drag-ghost {
+            height: 3px; /* Hauteur de la ligne de prévisualisation */
+            background-color: #1e97c7; /* Couleur bleue */
+            margin: 8px 0; /* Marge pour l'espacement */
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(30, 151, 199, 0.7);
+            transition: all 0.1s ease-out; /* Douce transition pour l'apparition */
+        }
+
+        /* Les styles .controls et button ne sont plus nécessaires car remplacés par des icônes */
+        /*
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 700px;
+            justify-content: flex-end;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            font-family: 'Lora', serif;
+            background-color: #36454F;
+            color: #F8F8F8;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #556B8D;
+        }
+        */
+
+        #file-input {
+            display: none; /* Cache l'input de type fichier par défaut */
+        }
+
+        /* L'info-text n'est plus nécessaire ici, il est remplacé par l'icône */
+        /*
+        .info-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+        */
+
+        /* Styles pour la modale d'information */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Fond sombre semi-transparent */
+            display: none; /* Caché par défaut */
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Assure que la modale est au-dessus de tout */
+        }
+
+        .modal-content {
+            background-color: #F8F8F8; /* Couleur de fond de la modale */
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: fadeIn 0.3s ease-out; /* Animation d'apparition */
+            color: #36454F; /* Couleur du texte dans la modale */
+            text-align: left; /* Aligne le texte à gauche */
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #1e97c7; /* Couleur bleue pour le titre */
+            text-align: center;
+        }
+
+        .modal-content p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .modal-content kbd {
+            background-color: #EEE;
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #CCC;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .modal-content .highlight {
+            font-weight: bold;
+            color: #556B8D; /* Mettre en évidence les actions principales */
+        }
+
+        .modal-content i.fas {
+            color: #1e97c7; /* Couleur pour les icônes dans la description */
+            margin-right: 5px;
+        }
+
+        .modal-content .small-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 2em;
+            color: #AAA;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #36454F;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-left-controls">
+        <i id="save-json-btn" class="fas fa-save icon-btn" title="Sauvegarder en JSON"></i>
+        <i id="load-json-btn" class="fas fa-upload icon-btn" title="Restaurer depuis JSON"></i>
+        <i id="info-btn" class="fas fa-info-circle icon-btn" title="Informations sur l'utilisation"></i>
+        <!-- Input fichier caché pour la restauration -->
+        <input type="file" id="file-input" accept=".json">
+    </div>
+
+    <div class="container">
+        <!-- Zone de saisie pour les nouvelles notes -->
+        <textarea id="note-input" placeholder="Write your new note here and press Enter..."></textarea>
+
+        <!-- Conteneur où les notes seront affichées -->
+        <div id="notes-container">
+            <!-- Les notes seront injectées ici par JavaScript -->
+        </div>
+
+        <!-- L'info-text a été retiré de la page et intégré dans l'icône -->
+    </div>
+
+    <!-- Modal pour les informations -->
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>How to use My Simple Notes</h2>
+            <p><strong>Add a note:</strong> Write your text in the input area at the bottom and press the <kbd>Enter</kbd> key.</p>
+            <p><strong>Edit a note:</strong> <span class="highlight">Double-click</span> on an existing note to open it in edit mode. Press <kbd>Enter</kbd> or click outside to save.</p>
+            <p><strong>Change color:</strong> <span class="highlight">Single-click</span> on a note to cycle through its colors (red, orange, green, no color).</p>
+            <p><strong>Delete a note:</strong> <span class="highlight">Right-click</span> on a note. A confirmation will be requested.</p>
+            <p><strong>Move a note:</strong> <span class="highlight">Click and drag</span> a note to move it to the desired position. Release to confirm.</p>
+            <p><strong>Save notes (JSON):</strong> Click on the <i class="fas fa-save"></i> icon at the top left to download all your notes in JSON format.</p>
+            <p><strong>Restore notes (JSON):</strong> Click on the <i class="fas fa-upload"></i> icon at the top left to choose a JSON file and restore your notes.</p>
+            <p class="small-text">Your notes are automatically saved in your browser (local storage).</p>
+        </div>
+    </div>
+
+    <script>
+        /* FILENAME: note.html (JS section) */
+        // Clé spécifique pour le localStorage de cette application
+        const LOCAL_STORAGE_KEY = 'mesNotesPersistantesApp';
+        let notes = []; // Tableau qui contiendra toutes les notes
+
+        // Récupération des éléments du DOM
+        const noteInput = document.getElementById('note-input');
+        const notesContainer = document.getElementById('notes-container');
+        const saveJsonBtn = document.getElementById('save-json-btn');
+        const loadJsonBtn = document.getElementById('load-json-btn');
+        const fileInput = document.getElementById('file-input');
+        const infoBtn = document.getElementById('info-btn'); // Actif pour la modale
+        const infoModal = document.getElementById('info-modal');
+        const closeModalBtn = infoModal.querySelector('.close-btn');
+
+        // Variables pour le Drag and Drop
+        let draggedNoteId = null;
+        let dragGhost = null; // Élément visuel pour la prévisualisation de la position
+
+
+        // --- Fonctions utilitaires ---
+
+        // Génère un identifiant unique pour chaque note
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        }
+
+        // --- Gestion du Local Storage ---
+
+        // Charge les notes depuis le localStorage
+        function loadNotes() {
+            const storedNotes = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (storedNotes) {
+                try {
+                    notes = JSON.parse(storedNotes);
+                    // S'assurer que 'notes' est bien un tableau, même si le localStorage était corrompu
+                    if (!Array.isArray(notes)) {
+                        console.warn("Les données stockées ne sont pas un tableau, réinitialisation.");
+                        notes = [];
+                    }
+                    // Assurer que chaque note a une propriété 'color' et 'timestamp' pour les anciennes notes
+                    notes = notes.map(note => ({
+                        id: note.id || generateId(),
+                        content: note.content || '',
+                        timestamp: note.timestamp || Date.now(), // Conserve le timestamp pour l'ordre si les notes sont mélangées après rechargement de la page sans D&D
+                        color: note.color || '' // Ajoute la propriété color si elle n'existe pas
+                    }));
+                } catch (e) {
+                    console.error("Erreur lors de l'analyse des notes depuis le stockage local:", e);
+                    notes = []; // Réinitialiser si les données sont corrompues
+                }
+            } else {
+                notes = [];
+            }
+            renderNotes(); // Affiche les notes chargées
+        }
+
+        // Sauvegarde les notes actuelles dans le localStorage
+        function saveNotes() {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(notes));
+        }
+
+        // --- Rendu des notes dans le DOM ---
+
+        // Affiche toutes les notes dans le conteneur
+        function renderNotes() {
+            notesContainer.innerHTML = ''; // Efface les notes existantes avant de les recréer
+            // L'ordre des notes est maintenant géré par le glisser-déposer,
+            // donc pas de tri automatique par timestamp ici.
+            // Le timestamp sert uniquement à la création pour unshift et à la persistance.
+
+            notes.forEach(note => {
+                const noteItem = document.createElement('div');
+                noteItem.classList.add('note-item');
+                noteItem.dataset.id = note.id; // Stocke l'ID de la note dans l'élément DOM
+                noteItem.innerText = note.content; // Affiche le contenu de la note
+                noteItem.draggable = true; // Rendre la note draggable
+
+                // Applique la classe de couleur si la note en a une
+                if (note.color) {
+                    noteItem.classList.add(`note-${note.color}`);
+                }
+
+                notesContainer.appendChild(noteItem);
+            });
+        }
+
+        // --- Gestionnaires d'événements ---
+
+        // Ajout d'une nouvelle note sur la touche 'Entrée'
+        noteInput.addEventListener('keydown', (e) => {
+            // Empêche la nouvelle ligne par défaut si seule 'Entrée' est pressée
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const content = noteInput.value.trim();
+                if (content) {
+                    // Ajoute la nouvelle note au début du tableau pour qu'elle apparaisse en haut
+                    notes.unshift({
+                        id: generateId(),
+                        content: content,
+                        timestamp: Date.now(),
+                        color: '' // Nouvelle note sans couleur par défaut
+                    });
+                    noteInput.value = ''; // Vide le champ de saisie
+                    saveNotes(); // Sauvegarde les notes
+                    renderNotes(); // Met à jour l'affichage
+                }
+            }
+        });
+
+        let clickCount = 0;
+        let clickTimer = null;
+        let lastClickedElement = null;
+
+        // Gestion des clics sur les notes (pour couleur et édition)
+        notesContainer.addEventListener('click', (e) => {
+            const noteItem = e.target.closest('.note-item');
+            if (noteItem && !noteItem.classList.contains('editing')) {
+
+                // Si on clique sur une note différente, reset le compteur
+                if (lastClickedElement !== noteItem) {
+                    clickCount = 0;
+                    lastClickedElement = noteItem;
+                }
+
+                clickCount++;
+
+                // Clear le timer précédent s'il existe
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                }
+
+                if (clickCount === 1) {
+                    // Premier clic - attendre un peu pour voir s'il y a un deuxième
+                    clickTimer = setTimeout(() => {
+                        // Clic simple confirmé - changer la couleur
+                        changeNoteColor(noteItem);
+                        clickCount = 0;
+                        lastClickedElement = null;
+                    }, 200); // Délai réduit à 200ms
+
+                } else if (clickCount === 2) {
+                    // Double clic détecté - éditer la note
+                    clearTimeout(clickTimer);
+                    editNote(noteItem);
+                    clickCount = 0;
+                    lastClickedElement = null;
+                }
+            }
+        });
+
+        // Fonction pour changer la couleur d'une note
+        function changeNoteColor(noteItem) {
+            const noteId = noteItem.dataset.id;
+            const noteIndex = notes.findIndex(n => n.id === noteId);
+
+            if (noteIndex > -1) {
+                const note = notes[noteIndex];
+                const currentColor = note.color;
+                let nextColor = '';
+
+                // Logique de cycle des couleurs: vide -> rouge -> orange -> vert -> vide
+                if (currentColor === '') {
+                    nextColor = 'red';
+                } else if (currentColor === 'red') {
+                    nextColor = 'orange';
+                } else if (currentColor === 'orange') {
+                    nextColor = 'green';
+                } else if (currentColor === 'green') {
+                    nextColor = ''; // Retour à l'état sans couleur
+                }
+
+                // Met à jour la note dans le tableau
+                note.color = nextColor;
+
+                saveNotes(); // Sauvegarde les notes modifiées
+                renderNotes(); // Re-rend toutes les notes pour appliquer la nouvelle couleur
+            }
+        }
+
+        // Fonction pour éditer une note
+        function editNote(noteItem) {
+            const noteId = noteItem.dataset.id;
+            const note = notes.find(n => n.id === noteId);
+
+            if (note) {
+                noteItem.classList.add('editing');
+                noteItem.classList.remove('note-red', 'note-orange', 'note-green');
+                const originalContent = note.content;
+
+                const textarea = document.createElement('textarea');
+                textarea.value = originalContent;
+                noteItem.innerHTML = '';
+                noteItem.appendChild(textarea);
+                textarea.focus();
+
+                // Ajuste la hauteur du textarea
+                textarea.style.height = 'auto';
+                textarea.style.height = (textarea.scrollHeight) + 'px';
+
+                // Fonction de sauvegarde
+                const saveEdit = () => {
+                    const newContent = textarea.value.trim();
+                    if (newContent !== originalContent) {
+                        note.content = newContent;
+                        saveNotes();
+                    }
+                    noteItem.classList.remove('editing');
+                    renderNotes();
+                };
+
+                textarea.addEventListener('blur', saveEdit);
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        textarea.blur();
+                    }
+                });
+
+                textarea.addEventListener('input', () => {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = (textarea.scrollHeight) + 'px';
+                });
+            }
+        }
+
+        // Suppression d'une note au clic droit
+        notesContainer.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Empêche le menu contextuel par défaut du navigateur
+            const noteItem = e.target.closest('.note-item');
+            if (noteItem) {
+                const noteId = noteItem.dataset.id;
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) { // Demande confirmation
+                    notes = notes.filter(n => n.id !== noteId); // Filtre la note à supprimer
+                    saveNotes(); // Sauvegarde les notes mises à jour
+                    renderNotes(); // Met à jour l'affichage
+                }
+            }
+        });
+
+        // --- Drag and Drop functionality ---
+
+        // Quand on commence à glisser une note
+        notesContainer.addEventListener('dragstart', (e) => {
+            const noteItem = e.target.closest('.note-item');
+            if (noteItem) {
+                draggedNoteId = noteItem.dataset.id;
+                noteItem.classList.add('dragging');
+                // Empêche le clic simple de se déclencher après dragend
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                lastClickedElement = null;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', draggedNoteId); // Pour IE/Edge
+            }
+        });
+
+        // Quand l'élément glissé survole une zone de dépôt potentielle
+        notesContainer.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Permet le drop (sinon, le drop n'est pas autorisé par défaut)
+            const targetNoteItem = e.target.closest('.note-item');
+
+            // Si on survole un élément qui n'est pas la note en cours de glissement
+            if (targetNoteItem && targetNoteItem.dataset.id !== draggedNoteId) {
+                if (!dragGhost) {
+                    dragGhost = document.createElement('div');
+                    dragGhost.classList.add('drag-ghost');
+                }
+
+                const rect = targetNoteItem.getBoundingClientRect();
+                // Détermine si le curseur est dans la moitié supérieure ou inférieure de la note survolée
+                const isAbove = e.clientY < rect.top + rect.height / 2;
+
+                if (isAbove) {
+                    notesContainer.insertBefore(dragGhost, targetNoteItem);
+                } else {
+                    notesContainer.insertBefore(dragGhost, targetNoteItem.nextSibling);
+                }
+            } else if (!targetNoteItem && e.target === notesContainer && draggedNoteId) {
+                // Si on glisse dans un espace vide du conteneur (probablement à la fin)
+                if (!dragGhost) {
+                    dragGhost = document.createElement('div');
+                    dragGhost.classList.add('drag-ghost');
+                }
+                // Si le dragGhost n'est pas déjà le dernier enfant, ou s'il n'est pas dans le DOM
+                if (notesContainer.lastChild !== dragGhost || !notesContainer.contains(dragGhost)) {
+                    notesContainer.appendChild(dragGhost);
+                }
+            } else if (dragGhost && targetNoteItem && targetNoteItem.dataset.id === draggedNoteId) {
+                // Si on survole la note elle-même, on enlève le ghost
+                dragGhost.remove();
+                dragGhost = null;
+            }
+        });
+
+        // Quand l'élément glissé quitte une zone de dépôt
+        notesContainer.addEventListener('dragleave', (e) => {
+            // Vérifie si l'élément lié n'est pas le conteneur ou un enfant du conteneur
+            // Ceci est nécessaire car dragleave se déclenche aussi quand on passe d'un enfant à un autre
+            if (dragGhost && (!e.relatedTarget || !notesContainer.contains(e.relatedTarget))) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
+        });
+
+        // Quand on lâche l'élément glissé
+        notesContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain'); // Récupère l'ID de la note glissée
+            const draggedNote = notes.find(n => n.id === id);
+
+            if (draggedNote && dragGhost) {
+                const oldIndex = notes.findIndex(n => n.id === id);
+                notes.splice(oldIndex, 1); // Retire la note de son ancienne position
+
+                let newIndex = notes.length; // Par défaut, si le ghost est à la fin ou absent
+
+                // Trouvez l'élément DOM qui se trouve APRÈS le ghost (l'élément où la note sera insérée AVANT)
+                const nextElement = dragGhost.nextElementSibling;
+                if (nextElement && nextElement.classList.contains('note-item')) {
+                    const nextNoteId = nextElement.dataset.id;
+                    newIndex = notes.findIndex(n => n.id === nextNoteId);
+                }
+
+                // Insère la note à la nouvelle position calculée
+                notes.splice(newIndex, 0, draggedNote);
+
+                saveNotes();
+                renderNotes(); // Re-render pour refléter le nouvel ordre
+            }
+
+            // Nettoyage après le drop
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
+            draggedNoteId = null;
+        });
+
+        // Quand l'opération de glisser-déposer se termine (réussie ou annulée)
+        notesContainer.addEventListener('dragend', (e) => {
+            const noteItem = e.target.closest('.note-item');
+            if (noteItem) {
+                noteItem.classList.remove('dragging');
+            }
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
+            draggedNoteId = null;
+        });
+
+
+        // --- Fonctionnalités JSON (Sauvegarde/Restauration) ---
+
+        // Sauvegarde toutes les notes actuelles en fichier JSON
+        saveJsonBtn.addEventListener('click', () => {
+            const jsonString = JSON.stringify(notes, null, 2); // Convertit les notes en JSON lisible
+            const blob = new Blob([jsonString], { type: 'application/json' }); // Crée un Blob
+            const url = URL.createObjectURL(blob); // Crée une URL temporaire pour le Blob
+            const a = document.createElement('a'); // Crée un lien de téléchargement
+            a.href = url;
+            a.download = 'mes_notes.json'; // Nom du fichier
+            document.body.appendChild(a);
+            a.click(); // Simule un clic pour démarrer le téléchargement
+            document.body.removeChild(a); // Supprime le lien temporaire
+            URL.revokeObjectURL(url); // Libère l'URL temporaire
+        });
+
+        // Déclenche la sélection de fichier pour la restauration JSON
+        loadJsonBtn.addEventListener('click', () => {
+            fileInput.click(); // Ouvre la boîte de dialogue de sélection de fichier
+        });
+
+        // Gère la lecture du fichier JSON sélectionné
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const loadedData = JSON.parse(event.target.result); // Parse le contenu JSON
+                        if (Array.isArray(loadedData)) {
+                            // Assure que chaque note a un ID et un horodatage (pour la compatibilité)
+                            const newNotes = loadedData.map(note => ({
+                                id: note.id || generateId(), // Génère un nouvel ID si absent
+                                content: note.content || '',
+                                timestamp: note.timestamp || Date.now(), // Génère un nouvel horodatage si absent
+                                color: note.color || '' // Assure que la propriété color existe
+                            }));
+                            notes = newNotes; // Remplace les notes actuelles
+                            saveNotes(); // Sauvegarde les notes restaurées
+                            renderNotes(); // Met à jour l'affichage
+                            alert('Notes restaurées avec succès !');
+                        } else {
+                            alert('Le fichier JSON ne contient pas un tableau de notes valide.');
+                        }
+                    } catch (error) {
+                        alert('Erreur lors de la lecture ou de l\'analyse du fichier JSON : ' + error.message);
+                    }
+                };
+                reader.readAsText(file); // Lit le fichier comme du texte
+            }
+            fileInput.value = ''; // Réinitialise l'input pour permettre de charger le même fichier à nouveau
+        });
+
+        // --- Event Listeners for Info Modal ---
+        infoBtn.addEventListener('click', () => {
+            infoModal.style.display = 'flex'; // Affiche la modale
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            infoModal.style.display = 'none'; // Cache la modale
+        });
+
+        // Ferme la modale si l'utilisateur clique en dehors du contenu
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) {
+                infoModal.style.display = 'none';
+            }
+        });
+
+        // Initialisation de l'application au chargement de la page
+        document.addEventListener('DOMContentLoaded', loadNotes);
+    </script>
+</body>
+</html>
